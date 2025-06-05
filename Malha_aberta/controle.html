@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nivelsônico - Monitoramento e Controle de Sistema de Água</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* ===============================================
+🎨 1. VARIÁVEIS DE CORES E TEMAS
+=============================================== */
+        :root {
+            --azul-principal: #00b4d8;
+            --azul-hover: #0096c7;
+            --verde: #4caf50;
+            --vermelho: #f44336;
+            --cinza-claro: #f8f9fa;
+            --cinza-medio: #dee2e6;
+            --cinza-escuro: #343a40;
+            --texto-claro: #f8f9fa;
+            --texto-escuro: #333333;
+            --fundo-claro: #ffffff;
+            --fundo-escuro: #212529;
+            --sombra-padrao: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ===============================================
+  🧱 2. BASE
+  =============================================== */
+        html,
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            /* impede rolagem vertical e horizontal */
+            background-color: var(--fundo-claro);
+            color: var(--texto-escuro);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* ===============================================
+  📌 NAVBAR REESTILIZADA E LIMITADA
+=============================================== */
+        .navbar {
+            max-width: 100%;
+            width: 100vw;
+            padding: 16px 32px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-sizing: border-box;
+        }
+
+        .logo {
+            font-weight: 600;
+            font-size: 20px;
+            color: #2b2b2b;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .logo:hover {
+            color: var(--azul-principal);
+        }
+
+        .navbar nav {
+            display: flex;
+            gap: 14px;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            padding: 8px 14px;
+            font-weight: 500;
+            font-size: 14px;
+            border-radius: 6px;
+            color: #444;
+            transition: all 0.3s ease;
+        }
+
+        .navbar a:hover {
+            background-color: #f1f3f5;
+            color: var(--azul-principal);
+        }
+
+        /* ===============================================
+  🧩 4. CONTAINER - Clean e Responsivo
+  =============================================== */
+        .container {
+            display: grid;
+            grid-template-areas:
+                "status tanque"
+                "controles grafico";
+            grid-template-columns: 1fr 1fr;
+            /* status menor, controles maior */
+            grid-template-rows: 0.9fr 1.3fr;
+            /* parte de cima menor que a de baixo */
+            gap: 24px;
+            height: calc(100vh - 130px);
+            /* deixar espaço fixo p/ o footer */
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+
+
+
+
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-areas:
+                    "status"
+                    "grafico"
+                    "tanque"
+                    "controles";
+                grid-template-columns: 1fr;
+                gap: 24px;
+                padding: 20px 16px;
+            }
+        }
+
+        /* ===============================================
+  📦 5. CARDs e ÁREAS - Estilo Moderno
+  =============================================== */
+        .card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            gap: 12px;
+            background-color: var(--fundo-claro);
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+
+
+        .card:hover {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transform: translateY(-4px);
+        }
+
+        .card h2 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--azul-principal);
+            text-align: left;
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--texto-escuro);
+            text-align: center;
+        }
+
+        .card h2:hover {
+            color: var(--azul-hover);
+        }
+
+        .card h3:hover {
+            color: var(--azul-hover);
+        }
+
+        /* Áreas do Grid */
+        .status-card {
+            grid-area: status;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .status-card .status-item {
+            margin: 2px 0;
+        }
+
+        .controles-card {
+            grid-area: controles;
+        }
+
+        .controles-card h2 {
+            margin-bottom: 4px;
+            /* ou 0 se quiser colado mesmo */
+        }
+
+
+        .tanque-card {
+            grid-area: tanque;
+        }
+
+        .grafico-card {
+            grid-area: grafico;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+
+        /* ===============================================
+  🔘 6. STATUS, LED e SERIAL - Estilo Clean
+=============================================== */
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 0;
+            font-size: 15px;
+            color: var(--texto-escuro);
+            transition: color 0.3s ease;
+        }
+
+        .status-item span {
+            font-weight: 500;
+        }
+
+        .led {
+            width: 14px;
+            height: 14px;
+            min-width: 14px;
+            min-height: 14px;
+            border-radius: 50%;
+            background-color: #aaa;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+
+        .led.on {
+            background-color: var(--verde);
+        }
+
+        .led.off {
+            background-color: var(--vermelho);
+        }
+
+        /* ===============================================
+  🧪 7. TANQUE - Clean e Estilizado
+=============================================== */
+        .tanque-container {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tanque-img {
+            position: relative;
+            width: 100px;
+            height: 180px;
+            border-radius: 30px 30px 30px 30px;
+            border: 2px solid var(--cinza-medio);
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            background-color: #f9f9f9;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .fluido {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(180deg, #94e2ff, #4db5d9);
+            transition: height 0.5s ease-in-out;
+            border-radius: 0 0 20px 20px;
+        }
+
+
+        /* ===============================================
+📊 8. INDICADORES E CONTROLES - Clean e Tecnológico
+=============================================== */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            position: relative;
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+
+        .controls h2 {
+            margin: 0 0 2px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--azul-principal);
+            text-align: left;
+        }
+
+        .controls h2:hover {
+            color: var(--azul-hover);
+        }
+
+        .controls button {
+            padding: 12px 12px;
+            border: 0.8px solid transparent;
+            border-radius: 4px;
+            background-color: transparent;
+            color: var(--texto-escuro);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: none;
+        }
+
+        body[data-theme="dark"] .controls button {
+            color: var(--texto-claro);
+        }
+
+        .controls button:hover {
+            background-color: rgba(0, 180, 216, 0.1);
+            border-color: var(--azul-principal);
+        }
+
+
+        #btnBomba {
+            background-color: transparent;
+            border: 1px solid var(--azul-principal);
+            color: var(--azul-principal);
+            padding: 8px 16px;
+            margin-left: 380px;
+            margin-bottom: 10px;
+            width: 25%;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #btnBomba:hover {
+            background-color: var(--azul-principal);
+            color: white;
+        }
+
+
+        /* Linha dos indicadores */
+        .controls-row {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 32px;
+            flex-wrap: wrap;
+            margin-top: 0px;
+        }
+
+        .indicator-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 240px;
+            width: 200px;
+            border-radius: 12px;
+            background-color: transparent;
+            border: 1px solid var(--cinza-medio);
+            backdrop-filter: blur(4px);
+            padding: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .indicator-box:hover {
+            border-color: var(--azul-principal);
+        }
+
+        .indicator-box canvas {
+            display: block;
+            margin: 12px auto 0;
+        }
+
+        /* ===============================================
+🔢 9. INPUTS e CAIXAS DE APLICAÇÃO - Clean e Tecnológico
+=============================================== */
+        .input-box {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-top: 16px;
+            gap: 8px;
+        }
+
+        .input-box input[type="number"] {
+            width: 90px;
+            padding: 8px 12px;
+            font-size: 14px;
+            text-align: center;
+            border: 1px solid var(--cinza-medio);
+            border-radius: 8px;
+            background-color: transparent;
+            color: var(--texto-escuro);
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+        }
+
+        body[data-theme="dark"] .input-box input[type="number"] {
+            color: var(--texto-claro);
+            border: 1px solid var(--cinza-claro);
+        }
+
+        .input-box input[type="number"]:focus {
+            outline: none;
+            border-color: var(--azul-principal);
+            background-color: rgba(0, 180, 216, 0.05);
+        }
+
+        .input-box button {
+            background-color: transparent;
+            border: 1px solid var(--azul-principal);
+            color: var(--azul-principal);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .input-box button:hover {
+            background-color: var(--azul-principal);
+            color: white;
+        }
+
+        #inputIntervalo {
+            padding: 6px 8px;
+            border: 1px solid var(--cinza-medio);
+            border-radius: 8px;
+            font-size: 13px;
+            width: 60px;
+            text-align: center;
+            background-color: transparent;
+            color: var(--texto-escuro);
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+        }
+
+        body[data-theme="dark"] #inputIntervalo {
+            color: var(--texto-claro);
+            border: 1px solid var(--cinza-claro);
+        }
+
+        #inputIntervalo:focus {
+            outline: none;
+            border-color: var(--azul-principal);
+            background-color: rgba(0, 180, 216, 0.05);
+        }
+
+        /* ===============================================
+  📈 10. GRÁFICO - Clean e Tecnológico
+=============================================== */
+        .grafico-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        #grafico {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Botão Reset Gráfico */
+        #resetChartBtn {
+            background-color: transparent;
+            border: 1.5px solid var(--azul-principal);
+            color: var(--azul-principal);
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: none;
+        }
+
+        #resetChartBtn:hover {
+            background-color: var(--azul-principal);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        #resetChartBtn:active {
+            transform: scale(0.97);
+        }
+
+
+        /* ===============================================
+  📥 12. SERIAL STATUS
+  =============================================== */
+        .serial-status {
+            display: flex;
+            align-items: center;
+            margin-top: 0;
+        }
+
+        .serial-status span {
+            margin-left: 0;
+            font-weight: bold;
+        }
+
+        /* ===============================================
+  🦶 13. RODAPÉ
+  =============================================== */
+        .footer {
+            background-color: #f1f3f5;
+
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            flex-shrink: 0;
+
+            padding: 4px;
+            text-align: center;
+            font-size: 13px;
+            color: #212529;
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.1);
+            width: 100%;
+
+        }
+
+        .footer a {
+            text-decoration: none;
+            font-weight: 600;
+            margin: 0 6px;
+            color: inherit;
+            transition: color 0.2s ease;
+        }
+
+        .footer a:hover {
+            color: var(--azul-principal);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: var(--fundo-claro);
+            padding: 24px;
+            border-radius: 12px;
+            width: 320px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .modal-content input {
+            width: 85%;
+            padding: 8px;
+            margin-bottom: 12px;
+            border: 1px solid var(--cinza-medio);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .modal-content button {
+            margin: 6px;
+        }
+
+        /* Botões do Modal */
+        #sendCalibration {
+            background-color: var(--azul-principal);
+            color: white;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #sendCalibration:hover {
+            background-color: var(--azul-hover);
+        }
+
+        #closeModal {
+            background-color: var(--vermelho);
+            color: white;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #closeModal:hover {
+            background-color: #c82333;
+        }
+
+
+        /* Sidebar */
+        #sidebar {
+            position: fixed;
+            top: 70px;
+            left: -250px;
+            width: 220px;
+            height: calc(100vh - 70px);
+            background-color: var(--fundo-claro);
+            border-right: 1px solid var(--cinza-medio);
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.03);
+            padding: 40px 20px;
+            transition: left 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 20px;
+        }
+
+        #sidebar.show {
+            left: 0;
+        }
+
+        #sidebar button {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: var(--texto-escuro);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        #sidebar button:hover {
+            background-color: rgba(0, 180, 216, 0.08);
+            border-color: var(--azul-principal);
+            color: var(--azul-principal);
+            transform: translateY(-1px);
+        }
+
+
+        /* Modal */
+        .modalDist {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content-dist {
+            background-color: var(--fundo-claro);
+            padding: 24px;
+            border-radius: 12px;
+            width: 320px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .modal-content-dist input {
+            width: 85%;
+            padding: 8px;
+            margin-bottom: 12px;
+            border: 1px solid var(--cinza-medio);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .modal-content-dist button {
+            margin: 6px;
+        }
+
+        /* Botões do Modal */
+        #btnSendCalibration {
+            background-color: var(--azul-principal);
+            color: white;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #btnSendCalibration:hover {
+            background-color: var(--azul-hover);
+        }
+
+        #btnCloseModal {
+            background-color: var(--vermelho);
+            color: white;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #btnCloseModal:hover {
+            background-color: #c82333;
+        }
+
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .popup-content {
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+            max-width: 300px;
+        }
+
+        .popup-content p {
+            margin: 0 0 20px;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        .popup-content button {
+            padding: 8px 20px;
+            background-color: #00b4d8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .popup-content button:hover {
+            background-color: #0096c7;
+        }
+
+        .indicador-com-titulo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .indicador-com-titulo h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--texto-escuro);
+            margin: 0;
+        }
+
+        
+    </style>
+</head>
+
+<body data-theme="light">
+    <!-- Navbar -->
+    <div class="navbar">
+        <div class="logo" id="logoBtn">Nivelsônico</div>
+        <nav>
+            <a href="" id="btnMalhaAberta">Malha Aberta</a>
+            <a href="../Malha_fechada/controle.html" id="btnMalhaFechada">Malha Fechada</a>
+        </nav>
+    </div>
+
+    <!-- Sidebar (Começa fechada, sem a classe active) -->
+    <div id="sidebar" class="sidebar">
+        <button id="connectButton">Conectar Arduino</button>
+        <button id="collectDataBtn">Coletar Dados</button>
+        <button id="calibrateButton">Calibrar Curva</button>
+        <button id="calibrateButtonDist">Calibrar Distância</button>
+    </div>
+
+    <!-- Container Principal -->
+    <div class="container">
+        <!-- Status -->
+        <div class="card status-card">
+            <h2>Status do Sistema</h2>
+
+            <div class="status-item">
+                <div class="led on"></div><span>Sistema Ligado</span>
+            </div>
+            <div class="status-item">
+                <div class="led on"></div><span>Malha Aberta</span>
+            </div>
+            <div class="status-item">
+                <div id="ledBomba" class="led off"></div><span>Bomba</span>
+            </div>
+            <div class="status-item serial-status">
+                <div id="serialLed" class="led off"></div><span id="serialStatus">Desconectado</span>
+            </div>
+        </div>
+
+        <!-- Tanque -->
+        <div class="card tanque-card tanque-container">
+            <h2>Tanque de Fluido</h2>
+            <div class="tanque-img">
+                <div id="fluido" class="fluido" style="height: 100%;"></div>
+            </div>
+            <p>Nível atual: <span id="nivel-label">100%</span></p>
+        </div>
+
+        <!-- Controles -->
+        <div class="card controles-card">
+            <h2>Sistema de Controle</h2>
+            <div class="controls">
+                <button id="btnBomba">Ligar Bomba</button>
+                <div class="controls-row">
+                    <!-- VAZÃO -->
+                    <div class="indicador-com-titulo">
+                        <h2>Variável Manipulada</h2>
+                        <div class="indicator-box">
+                            <h3>Vazão</h3>
+                            <canvas id="vazaoChart" width="120" height="120"></canvas>
+                            <div class="input-box">
+                                <input type="number" id="inputVazao" placeholder="1.0" step="0.1" min="0" max="100">
+                                <button onclick="aplicarVazao()">Aplicar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- NÍVEL -->
+
+                    <div class="indicador-com-titulo">
+                        <h2>Variável Controlada</h2>
+                        <div class="indicator-box">
+                            <h3>Nível</h3>
+                            <canvas id="nivelChart" width="120" height="120"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de Linha -->
+        <div class="card grafico-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Tendência de Nível</h2>
+                <div style="font-size: 12px; text-align: right;">
+                    <label for="inputIntervalo">Tempo de amostragem (s):</label>
+                    <input type="number" id="inputIntervalo" value="1" min="1" style="width: 40px; font-size: 12px;">
+                </div>
+            </div>
+            <div style="text-align: right; margin-bottom: 10px;">
+                <button id="resetChartBtn" style="font-size: 12px;">Resetar Gráfico</button>
+            </div>
+            <div class="grafico-container">
+                <canvas id="grafico"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="footer">
+        <p>&copy; 2024 Nivelsônico. Todos os direitos reservados. |
+            <span>Desenvolvido por Nicole Maia Argondizzi e Isaac Miranda Camargos</span> |
+            <a href="#">Política de Privacidade</a> |
+            <a href="#">Termos de Uso</a>
+
+        </p>
+    </footer>
+
+    <!-- Modal de Calibração -->
+    <div id="calibrationModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h2>Calibrar Curva Cúbica</h2>
+            <label>a:</label>
+            <input type="number" id="inputA" step="any" placeholder="0.36"><br>
+            <label>b:</label>
+            <input type="number" id="inputB" step="any" placeholder="-2.13"><br>
+            <label>c:</label>
+            <input type="number" id="inputC" step="any" placeholder="11.37"><br>
+            <label>d:</label>
+            <input type="number" id="inputD" step="any" placeholder="12.51"><br><br>
+            <button id="sendCalibration">Enviar</button>
+            <button id="closeModal">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal de Calibração -->
+    <div id="calibrationModalDist" class="modalDist" style="display:none;">
+        <div class="modal-content-dist">
+            <label for="inputCalibragem">Distância do Sensor ao Fundo (cm):</label>
+            <input type="number" id="inputCalibragem" placeholder="35.56" step="0.01">
+            <button id="btnSendCalibration">Enviar</button>
+            <button id="btnCloseModal">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Popup de mensagem customizado -->
+    <div id="popupMensagem" class="popup">
+        <div class="popup-content">
+            <p id="popupTexto"></p>
+            <button onclick="fecharPopup()">OK</button>
+        </div>
+    </div>
+
+
+
+
+    <script>
+        const logoBtn = document.getElementById('logoBtn');
+        const sidebar = document.getElementById('sidebar');
+
+        logoBtn.addEventListener('click', function () {
+            sidebar.classList.toggle('show');
+        });
+
+        /****************************************
+        Conexão Serial com Arduino
+         ****************************************/
+        let port;
+        let reader;
+
+        const connectButton = document.getElementById('connectButton');
+        const serialLed = document.getElementById('serialLed');
+        const serialStatus = document.getElementById('serialStatus');
+        const ledBomba = document.getElementById('ledBomba');
+        const fluidoEl = document.getElementById('fluido');
+        const nivelLabel = document.getElementById('nivel-label');
+        const vazaoChartElem = document.getElementById('vazaoChart').getContext('2d');
+        const nivelChartElem = document.getElementById('nivelChart').getContext('2d');
+
+        let bombaLigada = false;
+        let nivelAtual = 0; // valor inicial
+        let vazaoAtual = 0;  // valor inicial
+
+        let nivelMax = 34.5;
+        let vazaoMax = 6;
+
+
+        // Plugin para exibir texto centralizado nos gráficos
+        const centerTextPlugin = {
+            id: 'centerTextPlugin',
+            afterDraw(chart, args, options) {
+                const { ctx, chartArea, data } = chart;
+                if (!data.datasets || !data.datasets.length) return;
+                const valorAtual = data.datasets[0].data[0];
+                const texto = valorAtual + (options.unit ? " " + options.unit : "");
+                const xCenter = (chartArea.left + chartArea.right) / 2;
+                const yCenter = (chartArea.top + chartArea.bottom) / 2;
+                ctx.save();
+                ctx.fillStyle = options.color || '#000';
+                ctx.font = (options.fontSize || 16) + 'px ' + (options.fontFamily || 'Arial');
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(texto, xCenter, yCenter);
+                ctx.restore();
+            }
+        };
+
+
+
+        /****************************************
+         * Conexão Serial com Arduino
+         ****************************************/
+        connectButton.addEventListener('click', async () => {
+            try {
+                port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 9600 });
+                serialStatus.textContent = 'Conectado';
+                serialLed.classList.remove('off');
+                serialLed.classList.add('on');
+                connectButton.disabled = true;
+                reader = port.readable.getReader();
+                readLoop();
+            } catch (error) {
+                console.error('Erro ao conectar ao Arduino:', error);
+                mostrarPopup('Não foi possível conectar ao Arduino. Verifique se o dispositivo está conectado corretamente.');
+            }
+        });
+
+        async function readLoop() {
+            const textDecoder = new TextDecoder();
+            let buffer = '';
+            while (true) {
+                try {
+                    const { value, done } = await reader.read();
+                    if (done) {
+                        reader.releaseLock();
+                        break;
+                    }
+                    buffer += textDecoder.decode(value);
+                    let lines = buffer.split('\n');
+                    buffer = lines.pop();
+                    lines.forEach(line => {
+                        parseAndDisplayData(line.trim());
+                        parseAndDisplayDataFuction(line.trim());
+                        parseAndDisplayDataTank(line.trim());
+
+                    });
+                } catch (error) {
+                    console.error('Erro na leitura:', error);
+                    break;
+                }
+            }
+        }
+
+        // Função para parsear dados no formato "Bomba:Ligada|Nivel:XX.XX|Vazao:YY.YY"
+        function parseAndDisplayData(data) {
+            const parts = data.split('|');
+            const dataObj = {};
+            parts.forEach(part => {
+                const [key, value] = part.split(':');
+                if (key && value) {
+                    dataObj[key.trim()] = value.trim();
+                }
+            });
+
+            // Bomba
+            if (dataObj['Bomba']) {
+                const estadoBomba = dataObj['Bomba'].toLowerCase();
+                ledBomba.classList.toggle('on', estadoBomba === 'ligada');
+                ledBomba.classList.toggle('off', estadoBomba !== 'ligada');
+                btnBomba.textContent = estadoBomba === 'ligada' ? 'Desligar Bomba' : 'Ligar Bomba';
+                bombaLigada = (estadoBomba === 'ligada');
+            }
+
+            // Nível
+            if (dataObj['Nivel']) {
+                const nivel = parseFloat(dataObj['Nivel']);
+                nivelAtual = nivel;
+                fluidoEl.style.height = `${nivel}%`;
+                nivelLabel.textContent = `${nivel.toFixed(0)}%`;
+                atualizarNivelChart(nivel);
+            }
+
+
+            // Vazão
+            if (dataObj['Vazao']) {
+                const vazao = parseFloat(dataObj['Vazao']);
+                vazaoAtual = vazao;
+                atualizarVazaoChart(vazao);
+            }
+        }
+
+        // Fechar porta antes de recarregar/fechar a página
+        window.addEventListener('beforeunload', async () => {
+            if (reader) {
+                await reader.cancel();
+                await reader.releaseLock();
+            }
+            if (port && port.close) {
+                await port.close();
+            }
+        });
+
+
+        /****************************************
+        Criação dos Gráficos de Doughnut
+         ****************************************/
+        function createCircularChart(ctx, initialValue, maxValue, color, unit) {
+            return new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [initialValue, maxValue - initialValue],
+                        backgroundColor: [color, '#ccc'],
+                        borderWidth: 0
+                    }]
+                },
+                plugins: [centerTextPlugin],
+                options: {
+                    cutout: '75%',
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        centerTextPlugin: {
+                            unit: unit || "",
+                            color: "#000",
+                            fontSize: 16,
+                            fontFamily: "Arial"
+                        }
+                    }
+                }
+            });
+        }
+
+        // OBS: Definimos o valor máximo para ilustração do gauge
+        const vazaoChart = createCircularChart(vazaoChartElem, vazaoAtual, vazaoMax, '#0096c7', 'L/min');
+        const nivelChart = createCircularChart(nivelChartElem, nivelAtual, nivelMax, '#00b4d8', 'cm');
+
+
+
+        /****************************************
+        Gráfico de Linha para o nível
+         ****************************************/
+
+        const ctxLine = document.getElementById('grafico').getContext('2d');
+        const valoresIniciais = Array(11).fill(nivelAtual);
+        const lineChart = new Chart(ctxLine, {
+            type: 'line',
+            data: {
+                labels: gerarLabels(1), // Começa assumindo intervalo de 1 segundo
+                datasets: [{
+                    label: 'Nível (cm)',
+                    data: valoresIniciais,
+                    borderColor: '#00b4d8',
+                    borderWidth: 2,
+                    fill: true,
+                    backgroundColor: 'rgba(0, 180, 216, 0.2)',
+                    tension: 0.4,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: {
+                            color: (ctx) => {
+                                if (ctx.tick && (ctx.tick.value === '10s' || ctx.tick.value === 'Agora')) {
+                                    return 'rgba(0,0,0,0.05)';
+                                }
+                                return 'rgba(0,0,0,0.01)';
+                            }
+                        },
+                        ticks: { color: '#dee2e6' }
+                    },
+                    y: {
+                        min: 0, max: 40,
+                        grid: {
+                            color: (ctx) => {
+                                if (ctx.tick && (ctx.tick.value === 0 || ctx.tick.value === 40)) {
+                                    return 'rgba(0,0,0,0.05)';
+                                }
+                                return 'rgba(0,0,0,0.01)';
+                            }
+                        },
+                        ticks: {
+                            color: '#dee2e6',
+                            stepSize: 5,
+                            callback: function (value) {
+                                return value + ' cm'; // Adiciona "cm" após o valor
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#fff',
+                        titleColor: '#000',
+                        bodyColor: '#333',
+                        borderColor: '#00b4d8',
+                        borderWidth: 1,
+                        titleFont: { weight: '600' }
+                    }
+
+                }
+            }
+        });
+
+        function gerarLabels(intervaloSegundos) {
+            const labels = [];
+            for (let i = 0; i <= 10; i++) {
+                labels.push(`${i * intervaloSegundos}s`);
+            }
+            return labels;
+        }
+
+
+        let tempoDecorrido = 0; // Segundos que já passaram
+        let intervaloAtual = 1000; // Começamos com 1s = 1000ms
+        let intervaloId = null;
+
+        function iniciarAtualizacaoGrafico() {
+            if (intervaloId) clearInterval(intervaloId);
+
+            // Garante que labels e data estão sincronizados com o novo intervalo
+            const intervaloSegundos = parseInt(inputIntervalo.value) || 1;
+            tempoDecorrido = intervaloSegundos * 10; // Começa em tempo máximo
+
+            lineChart.data.labels = gerarLabels(intervaloSegundos);
+            lineChart.data.datasets[0].data = Array(11).fill(nivelAtual);
+            lineChart.update();
+
+            intervaloId = setInterval(() => {
+                const novoNivel = parseFloat(nivelAtual.toFixed(1));
+                if (isNaN(novoNivel)) return;
+
+                lineChart.data.datasets[0].data.push(novoNivel);
+                tempoDecorrido += intervaloSegundos;
+                lineChart.data.labels.push(`${tempoDecorrido}s`);
+
+
+                lineChart.update();
+            }, intervaloAtual);
+        }
+
+
+
+        // Quando o valor do campo mudar:
+        const inputIntervalo = document.getElementById('inputIntervalo');
+        inputIntervalo.addEventListener('change', () => {
+            tempoDecorrido = 0; // Reseta o contador de tempo
+
+            let novoValor = parseInt(inputIntervalo.value);
+            if (isNaN(novoValor) || novoValor <= 0) {
+                novoValor = 1;
+            }
+            intervaloAtual = novoValor * 1000; // Atualiza o intervalo em milissegundos
+
+            // Atualiza os labels E os dados
+            lineChart.data.labels = gerarLabels(novoValor); // Gera novas labels corretas para o novo intervalo
+            lineChart.data.datasets[0].data = Array(11).fill(nivelAtual); // Atualiza também o dado para acompanhar
+
+            lineChart.update(); // Atualiza o gráfico visualmente
+
+            iniciarAtualizacaoGrafico(); // Reinicia a coleta com o novo intervalo
+        });
+
+        document.getElementById('resetChartBtn').addEventListener('click', () => {
+            tempoDecorrido = 0;
+            lineChart.data.labels = gerarLabels(parseInt(inputIntervalo.value));
+            lineChart.data.datasets[0].data = Array(11).fill(nivelAtual);
+            lineChart.update();
+        });
+
+
+        // Inicializa na primeira vez
+        iniciarAtualizacaoGrafico();
+
+
+
+
+        /****************************************
+        Funções de Atualização dos gráficos
+         ****************************************/
+        function atualizarVazaoChart(valor) {
+            vazaoChart.data.datasets[0].data[0] = valor;
+            vazaoChart.data.datasets[0].data[1] = vazaoMax - valor;
+            vazaoChart.update();
+        }
+
+        function atualizarNivelChart(valor) {
+            nivelChart.data.datasets[0].data[0] = valor;
+            nivelChart.data.datasets[0].data[1] = nivelMax - valor;
+            nivelChart.update();
+        }
+
+
+        /****************************************
+        Função para Enviar Vazão ao Arduino
+         ****************************************/
+        function aplicarVazao() {
+            let valorDigitado = parseFloat(inputVazao.value) || 0;
+            if (valorDigitado < 0) valorDigitado = 0;
+            if (valorDigitado > vazaoMax) valorDigitado = vazaoMax;
+            vazaoAtual = valorDigitado;
+
+            // Atualiza o gauge
+            atualizarVazaoChart(vazaoAtual);
+
+            // Se a conexão estiver aberta, envia comando: "Vazao:XX.XX"
+            if (port && port.writable) {
+                const writer = port.writable.getWriter();
+                const comando = `Vazao:${vazaoAtual}\n`;
+                writer.write(new TextEncoder().encode(comando));
+                writer.releaseLock();
+            }
+        }
+
+        // Bomba On/Off Manual
+        const btnBomba = document.getElementById('btnBomba');
+        btnBomba.addEventListener('click', () => {
+            bombaLigada = !bombaLigada;
+            btnBomba.textContent = bombaLigada ? 'Desligar Bomba' : 'Ligar Bomba';
+
+            // Envia comando: "Bomba:Ligada" ou "Bomba:Desligada"
+            if (port && port.writable) {
+                const writer = port.writable.getWriter();
+                const comando = `Bomba:${bombaLigada ? 'Ligada' : 'Desligada'}\n`;
+                writer.write(new TextEncoder().encode(comando));
+                writer.releaseLock();
+            }
+        });
+
+
+
+
+        /****************************************
+         * (A) Variáveis para coleta de dados CSV
+         ****************************************/
+        let coletandoDados = false;  // Se true, estamos em coleta
+        let csvData = [];            // Array que acumula linhas de dados
+        let startTime;               // Marca de tempo para calcular "Tempo (s)" no CSV
+
+        // Captura referência ao botão de coleta
+        const collectDataBtn = document.getElementById('collectDataBtn');
+
+        /****************************************
+         * (B) Evento de clique no botão Coletar Dados
+         ****************************************/
+        collectDataBtn.addEventListener('click', () => {
+            // Inverte o estado de coleta
+            coletandoDados = !coletandoDados;
+
+            if (coletandoDados) {
+                // 1) Caso estejamos iniciando a coleta
+                collectDataBtn.textContent = 'Parar Coleta';
+
+                // 2) Inicializa array de CSV com header (cabecalho)
+                //    Exemplo de colunas: Tempo (s), Bomba, Nivel, Vazao
+                csvData = [
+                    ['Tempo (s)', 'Bomba', 'Nivel (cm)', 'Vazao (L/min)']
+                ];
+
+                // 3) Guarda o horário de início para calcular "Tempo decorrido"
+                startTime = new Date();
+
+            } else {
+                // 1) Caso estejamos parando a coleta
+                collectDataBtn.textContent = 'Coletar Dados';
+
+                // 2) Gera o conteúdo CSV em string
+                let csvContent = csvData.map(linha => linha.join(',')).join('\n');
+
+                // 3) Faz o download do arquivo
+                downloadCSV(csvContent);
+            }
+        });
+
+        /****************************************
+         * (C) Função para gerar o download do CSV
+         ****************************************/
+        function gerarNomeArquivoCSV(prefixo = 'dados') {
+            const agora = new Date();
+
+            // Formata cada parte com 2 dígitos
+            // (dia, mês, hora, minuto, segundo)
+            const ano = agora.getFullYear();
+            const mes = String(agora.getMonth() + 1).padStart(2, '0');
+            const dia = String(agora.getDate()).padStart(2, '0');
+            const hora = String(agora.getHours()).padStart(2, '0');
+            const minuto = String(agora.getMinutes()).padStart(2, '0');
+            const segundo = String(agora.getSeconds()).padStart(2, '0');
+
+            // Monta o nome no formato "dados_2025-02-12_14-05-07.csv"
+            return `${prefixo}_${dia}/${mes}/${ano}_${hora}:${minuto}:${segundo}.csv`;
+        }
+
+
+        function downloadCSV(csvContent) {
+            // Cria um blob do tipo text/csv
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+
+            // Gera uma URL temporária para este blob
+            const url = URL.createObjectURL(blob);
+
+            // Cria um link <a> dinamicamente para baixar
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+
+            // Nome do arquivo: "dados_<timestamp>.csv"
+            a.download = gerarNomeArquivoCSV();
+
+
+            // Adiciona o link no body e clica nele
+            document.body.appendChild(a);
+            a.click();
+
+            // Remove o link e libera a URL temporária
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        /****************************************
+         * (D) Ajuste na função parseAndDisplayData
+         ****************************************/
+        function parseAndDisplayDataFuction(data) {
+            const parts = data.split('|');
+            const dataObj = {};
+            parts.forEach(part => {
+                const [key, value] = part.split(':');
+                if (key && value) {
+                    dataObj[key.trim()] = value.trim();
+                }
+            });
+
+            // Bomba
+            if (dataObj['Bomba']) {
+                const estadoBomba = dataObj['Bomba'].toLowerCase();
+                ledBomba.classList.toggle('on', estadoBomba === 'ligada');
+                ledBomba.classList.toggle('off', estadoBomba !== 'ligada');
+                btnBomba.textContent = estadoBomba === 'ligada' ? 'Desligar Bomba' : 'Ligar Bomba';
+                bombaLigada = (estadoBomba === 'ligada');
+            }
+
+            // Nível
+            if (dataObj['Nivel']) {
+                const nivel = parseFloat(dataObj['Nivel']);
+                nivelAtual = nivel;
+                fluidoEl.style.height = `${nivel}%`; // Exemplo: assumindo que "nivel" é % do tanque
+                nivelLabel.textContent = `${nivel.toFixed(0)}%`;
+                atualizarNivelChart(nivel);
+            }
+
+            // Vazão
+            if (dataObj['Vazao']) {
+                const vazao = parseFloat(dataObj['Vazao']);
+                vazaoAtual = vazao;
+                atualizarVazaoChart(vazao);
+            }
+
+            // >>> Se estamos coletando, adicionamos uma nova linha de dados no csvData <<<
+            if (coletandoDados) {
+                // Calcula quantos segundos se passaram desde o início da coleta
+                const now = new Date();
+                const elapsedSeconds = ((now - startTime) / 1000).toFixed(1);
+
+                // Obtem valores de Bomba, Nível e Vazão no formato que quiser
+                const bombaEstado = bombaLigada ? 'Ligada' : 'Desligada';
+
+                // Monta uma linha (array) com: [Tempo, Bomba, Nível, Vazão]
+                // Para montar "Nível" e "Vazão", use as variáveis que já preenchemos acima
+                csvData.push([
+                    elapsedSeconds,
+                    bombaEstado,
+                    nivelAtual.toFixed(2),
+                    vazaoAtual.toFixed(2)
+                ]);
+            }
+        }
+
+        // --------------TANQUE DE FLUIDO-----------------
+        function parseAndDisplayDataTank(data) {
+
+            // Separar as chaves (ex.: 'Bomba', 'Nivel', 'Vazao')
+            const parts = data.split('|');
+            const dataObj = {};
+            parts.forEach(part => {
+                const [key, value] = part.split(':');
+                if (key && value) {
+                    dataObj[key.trim()] = value.trim();
+                }
+            });
+
+            if (dataObj['Nivel']) {
+                // Converte a string para número (float)
+                const nivelEmCm = parseFloat(dataObj['Nivel']);
+
+                // 1) Atualiza a altura do fluido em porcentagem
+                // Se 35.5 cm é o nível máximo:
+                let alturaPercent = (nivelEmCm / 35.5) * 100;
+                if (alturaPercent > 100) alturaPercent = 100;
+                if (alturaPercent < 0) alturaPercent = 0;
+                fluidoEl.style.height = alturaPercent + '%';
+
+                // 2) Atualiza o texto do <span id="nivel-label"> para exibir em %
+                nivelLabel.textContent = `${alturaPercent.toFixed(0)}%`;
+
+            }
+
+
+        }
+
+        const calibrateButton = document.getElementById('calibrateButton');
+        const calibrationModal = document.getElementById('calibrationModal');
+        const sendCalibration = document.getElementById('sendCalibration');
+        const closeModal = document.getElementById('closeModal');
+
+        calibrateButton.addEventListener('click', () => {
+            calibrationModal.style.display = 'flex';
+        });
+
+        closeModal.addEventListener('click', () => {
+            calibrationModal.style.display = 'none';
+        });
+
+        sendCalibration.addEventListener('click', async () => {
+            const a = parseFloat(document.getElementById('inputA').value) || 0;
+            const b = parseFloat(document.getElementById('inputB').value) || 0;
+            const c = parseFloat(document.getElementById('inputC').value) || 0;
+            const d = parseFloat(document.getElementById('inputD').value) || 0;
+
+            const comando = `Calibrar:${a.toFixed(8)},${b.toFixed(8)},${c.toFixed(8)},${d.toFixed(8)}\n`;
+
+            if (port && port.writable) {
+                const writer = port.writable.getWriter();
+                await writer.write(new TextEncoder().encode(comando));
+                writer.releaseLock();
+                mostrarPopup('Parâmetros enviados!');
+            } else {
+                mostrarPopup('Conecte ao Arduino primeiro!');
+            }
+
+            calibrationModal.style.display = 'none';
+        });
+
+
+        // --------------CALIBRAÇÃO-----------------
+        const calibrateButtonDist = document.getElementById('calibrateButtonDist');
+        const calibrationModalDist = document.getElementById('calibrationModalDist');
+        const btnEnviarCalibragem = document.getElementById('btnSendCalibration');
+        const btnCloseModal = document.getElementById('btnCloseModal');
+
+        // Abre o modal
+        calibrateButtonDist.addEventListener('click', () => {
+            calibrationModalDist.style.display = 'flex';
+        });
+
+        // Envia a distância digitada
+        btnEnviarCalibragem.addEventListener('click', async () => {
+            const distancia = parseFloat(document.getElementById('inputCalibragem').value) || 0;
+            const comando = `Calibragem:${distancia.toFixed(2)}\n`;
+
+            if (port && port.writable) {
+                const writer = port.writable.getWriter();
+                await writer.write(new TextEncoder().encode(comando));
+                writer.releaseLock();
+                mostrarPopup('Distância calibrada e enviada!');
+            } else {
+                mostrarPopup('Conecte ao Arduino primeiro!');
+            }
+
+            calibrationModalDist.style.display = 'none';
+        });
+
+        // Fecha ao clicar fora do modal
+        window.addEventListener('click', (event) => {
+            if (event.target == calibrationModalDist) {
+                calibrationModalDist.style.display = 'none';
+            }
+        });
+
+        // Fecha ao clicar em "Cancelar"
+        btnCloseModal.addEventListener('click', () => {
+            calibrationModalDist.style.display = 'none';
+        });
+
+
+
+        const btnMalhaAberta = document.getElementById('btnMalhaAberta');
+        const btnMalhaFechada = document.getElementById('btnMalhaFechada');
+
+        btnMalhaAberta.addEventListener('click', () => {
+            enviarModoControle("Aberta");
+        });
+        btnMalhaFechada.addEventListener('click', async () => {
+            await enviarModoControle("Fechada");
+            window.location.href = "../Malha_fechada/controle.html";
+
+        });
+
+
+        async function enviarModoControle(modo) {
+            if (port && port.writable) {
+                const writer = port.writable.getWriter();
+                await writer.write(new TextEncoder().encode(`Modo:${modo}\n`));
+                writer.releaseLock();
+                mostrarPopup(`Modo ${modo} ativado`);
+            } else {
+                mostrarPopup("Conecte ao Arduino primeiro!");
+            }
+        }
+
+        function mostrarPopup(mensagem) {
+            const popup = document.getElementById('popupMensagem');
+            const texto = document.getElementById('popupTexto');
+            texto.textContent = mensagem;
+            popup.style.display = 'flex';
+        }
+
+        function fecharPopup() {
+            document.getElementById('popupMensagem').style.display = 'none';
+        }
+
+
+
+    </script>
+</body>
+
+</html>
