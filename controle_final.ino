@@ -193,6 +193,9 @@ void loop() {
   Serial.print(Nivel, 2);
   Serial.print("|Vazao:");
   Serial.println(vazao, 2);
+  Serial.print("|Duty:");
+  Serial.println(duty_cycle, 1);
 
   delay(1000);
+  
 }

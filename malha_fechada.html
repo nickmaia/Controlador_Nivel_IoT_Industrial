@@ -16,6 +16,7 @@
         :root {
             --azul-principal: #00b4d8;
             --azul-hover: #0096c7;
+            --azul-escuro: #0A1128;
             --verde: #4caf50;
             --vermelho: #f44336;
             --cinza-claro: #f8f9fa;
@@ -62,6 +63,7 @@
             top: 0;
             z-index: 1000;
             box-sizing: border-box;
+            overflow-x: hidden;
         }
 
         .logo {
@@ -104,10 +106,11 @@
             display: grid;
             grid-template-areas:
                 "status tanque"
-                "controles grafico";
-            grid-template-columns: 1fr 1fr;
+                "pid tanque"
+                "grafico controles";
+            grid-template-columns: 1fr 1fr auto;
             /* status menor, controles maior */
-            grid-template-rows: 0.9fr 1.3fr;
+            grid-template-rows: 0.9fr 1.2fr;
             /* parte de cima menor que a de baixo */
             gap: 24px;
             height: calc(100vh - 130px);
@@ -117,11 +120,6 @@
             padding: 20px;
             box-sizing: border-box;
         }
-
-
-
-
-
 
         @media (max-width: 900px) {
             .container {
@@ -153,8 +151,6 @@
             overflow: hidden;
         }
 
-
-
         .card:hover {
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             transform: translateY(-4px);
@@ -169,7 +165,7 @@
         }
 
         .card h3 {
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: 500;
             color: var(--texto-escuro);
             text-align: center;
@@ -190,8 +186,12 @@
             gap: 2px;
         }
 
+        .status-card h2 {
+            margin-top: 24px;
+        }
+
         .status-card .status-item {
-            margin: 2px 0;
+            margin: 0;
         }
 
         .controles-card {
@@ -202,7 +202,6 @@
             margin-bottom: 4px;
             /* ou 0 se quiser colado mesmo */
         }
-
 
         .tanque-card {
             grid-area: tanque;
@@ -284,17 +283,14 @@
             border-radius: 0 0 20px 20px;
         }
 
-
         /* ===============================================
-📊 8. INDICADORES E CONTROLES - Clean e Tecnológico
+📊 8. CONTROLES E INDICADORES - ORGANIZADO E CLEAN
 =============================================== */
         .controls {
             display: flex;
             flex-direction: column;
-            align-items: stretch;
-            position: relative;
-            margin-top: 0 !important;
-            padding-top: 0 !important;
+            gap: 12px;
+            width: 100%;
         }
 
         .controls h2 {
@@ -309,37 +305,18 @@
             color: var(--azul-hover);
         }
 
-        .controls button {
-            padding: 12px 12px;
-            border: 0.8px solid transparent;
-            border-radius: 4px;
-            background-color: transparent;
-            color: var(--texto-escuro);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: none;
+        .bomba-wrapper {
+            display: flex;
+            justify-content: flex-end;
+            width: 100%;
+            margin-bottom: 0;
         }
-
-        body[data-theme="dark"] .controls button {
-            color: var(--texto-claro);
-        }
-
-        .controls button:hover {
-            background-color: rgba(0, 180, 216, 0.1);
-            border-color: var(--azul-principal);
-        }
-
 
         #btnBomba {
             background-color: transparent;
             border: 1px solid var(--azul-principal);
             color: var(--azul-principal);
-            padding: 8px 16px;
-            margin-left: 380px;
-            margin-bottom: 10px;
-            width: 25%;
+            padding: 10px 16px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
@@ -351,55 +328,73 @@
             color: white;
         }
 
-
-        /* Linha dos indicadores */
         .controls-row {
             display: flex;
             justify-content: center;
             align-items: flex-start;
             gap: 32px;
             flex-wrap: wrap;
-            margin-top: 0px;
         }
 
         .indicator-box {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 240px;
-            width: 200px;
+            justify-content: space-between;
+            width: 240px;
+            padding: 20px;
+            border: 1px solid var(--cinza-medio);
             border-radius: 12px;
             background-color: transparent;
-            border: 1px solid var(--cinza-medio);
             backdrop-filter: blur(4px);
-            padding: 16px;
             transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+
+        .controls-row .indicator-box {
+            min-height: 280px;
+            margin: 0 auto;
         }
 
         .indicator-box:hover {
             border-color: var(--azul-principal);
         }
 
-        .indicator-box canvas {
-            display: block;
-            margin: 12px auto 0;
+        .indicator-box h3 {
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+            color: var(--texto-escuro);
         }
 
-        /* ===============================================
-🔢 9. INPUTS e CAIXAS DE APLICAÇÃO - Clean e Tecnológico
-=============================================== */
+        .indicator-box canvas {
+            display: block;
+            margin: 0 auto 12px;
+        }
+
         .input-box {
             display: flex;
-            flex-direction: row;
-            align-items: center;
-            margin-top: 16px;
+            align-items: flex-end;
             gap: 8px;
+            margin-top: 8px;
         }
+
+        .input-box .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-box label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: var(--texto-escuro);
+        }
+
 
         .input-box input[type="number"] {
             width: 90px;
-            padding: 8px 12px;
+            padding: 8px 10px;
             font-size: 14px;
             text-align: center;
             border: 1px solid var(--cinza-medio);
@@ -409,16 +404,13 @@
             transition: border-color 0.3s ease, background-color 0.3s ease;
         }
 
-        body[data-theme="dark"] .input-box input[type="number"] {
-            color: var(--texto-claro);
-            border: 1px solid var(--cinza-claro);
-        }
-
         .input-box input[type="number"]:focus {
             outline: none;
             border-color: var(--azul-principal);
             background-color: rgba(0, 180, 216, 0.05);
         }
+
+
 
         .input-box button {
             background-color: transparent;
@@ -437,28 +429,103 @@
             color: white;
         }
 
-        #inputIntervalo {
-            padding: 6px 8px;
+        /* PID Layout abaixo dos indicadores */
+        .controls-pid {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            margin-top: 12px;
+        }
+
+        .controls-pid .indicator-box {
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            width: 100%;
+            max-width: 600px;
+            padding: 24px;
             border: 1px solid var(--cinza-medio);
-            border-radius: 8px;
-            font-size: 13px;
-            width: 60px;
-            text-align: center;
-            background-color: transparent;
+            border-radius: 12px;
+            gap: 16px;
+        }
+
+        .controls-pid .indicator-box:hover {
+            border-color: var(--azul-principal);
+        }
+
+
+
+        .controls-pid h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+            text-align: left;
             color: var(--texto-escuro);
-            transition: border-color 0.3s ease, background-color 0.3s ease;
         }
 
-        body[data-theme="dark"] #inputIntervalo {
-            color: var(--texto-claro);
-            border: 1px solid var(--cinza-claro);
+        .controls-pid .pid-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
         }
 
-        #inputIntervalo:focus {
+        .controls-pid .pid-inputs label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--texto-escuro);
+            margin-right: 4px;
+            display: inline-block;
+            min-width: 24px;
+            text-align: right;
+        }
+
+        .controls-pid .pid-inputs label:hover {
+            color: var(--azul-principal);
+            cursor: default;
+        }
+
+
+
+        .controls-pid .pid-inputs input {
+            margin-right: 8px;
+            width: 80px;
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid var(--cinza-medio);
+            border-radius: 6px;
+            background-color: transparent;
+            text-align: center;
+            color: var(--texto-escuro);
+        }
+
+        .controls-pid .pid-inputs input:focus {
             outline: none;
             border-color: var(--azul-principal);
             background-color: rgba(0, 180, 216, 0.05);
         }
+
+        .controls-pid button {
+            padding: 8px 14px;
+            border: 1px solid var(--azul-principal);
+            background-color: transparent;
+            color: var(--azul-principal);
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .controls-pid button:hover {
+            background-color: var(--azul-principal);
+            color: #fff;
+        }
+
+
+
+
 
         /* ===============================================
   📈 10. GRÁFICO - Clean e Tecnológico
@@ -469,6 +536,8 @@
             flex-direction: column;
             justify-content: center;
         }
+
+
 
         #grafico {
             width: 100%;
@@ -660,74 +729,6 @@
             transform: translateY(-1px);
         }
 
-
-        /* Modal */
-        .modalDist {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.45);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-content-dist {
-            background-color: var(--fundo-claro);
-            padding: 24px;
-            border-radius: 12px;
-            width: 320px;
-            text-align: center;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-        }
-
-        .modal-content-dist input {
-            width: 85%;
-            padding: 8px;
-            margin-bottom: 12px;
-            border: 1px solid var(--cinza-medio);
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .modal-content-dist button {
-            margin: 6px;
-        }
-
-        /* Botões do Modal */
-        #btnSendCalibration {
-            background-color: var(--azul-principal);
-            color: white;
-            padding: 8px 18px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        #btnSendCalibration:hover {
-            background-color: var(--azul-hover);
-        }
-
-        #btnCloseModal {
-            background-color: var(--vermelho);
-            color: white;
-            padding: 8px 18px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        #btnCloseModal:hover {
-            background-color: #c82333;
-        }
-
         .popup {
             position: fixed;
             top: 0;
@@ -785,7 +786,97 @@
             margin: 0;
         }
 
-        
+        .pid-card {
+            grid-area: pid;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .pid-inputs {
+            display: flex;
+            gap: 35px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .pid-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pid-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--texto-escuro);
+            margin-bottom: 4px;
+        }
+
+        .pid-group input {
+            width: 80px;
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid var(--cinza-medio);
+            border-radius: 6px;
+            background-color: transparent;
+            text-align: center;
+            color: var(--texto-escuro);
+        }
+
+        .pid-inputs button {
+            padding: 10px 16px;
+            border: 1px solid var(--azul-principal);
+            background-color: transparent;
+            color: var(--azul-principal);
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            height: 38px;
+            align-self: flex-end;
+            transition: all 0.3s ease;
+        }
+
+        .pid-inputs button:hover {
+            background-color: var(--azul-principal);
+            color: white;
+        }
+
+        .status-columns {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 10px 22px 10px;
+
+        }
+
+        .status-col {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .duty-card {
+            width: 100%;
+            text-align: center;
+            line-height: 1.3;
+            padding: 14px 6px;
+            border: 1px solid var(--cinza-medio);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--texto-escuro);
+            cursor: default;
+            user-select: none;
+        }
+
+        .duty-card:hover {
+            border-color: var(--azul-principal);
+        }
+
+        .duty-card #dutyValue {
+            font-size: 22px;
+            color: var(--azul-principal);
+        }
     </style>
 </head>
 
@@ -794,8 +885,8 @@
     <div class="navbar">
         <div class="logo" id="logoBtn">Nivelsônico</div>
         <nav>
-            <a href="" id="btnMalhaAberta">Malha Aberta</a>
-            <a href="../Malha_fechada/controle.html" id="btnMalhaFechada">Malha Fechada</a>
+            <a href="malha_aberta.html" id="btnMalhaAberta">Malha Aberta</a>
+            <a href="" id="btnMalhaFechada">Malha Fechada</a>
         </nav>
     </div>
 
@@ -803,29 +894,41 @@
     <div id="sidebar" class="sidebar">
         <button id="connectButton">Conectar Arduino</button>
         <button id="collectDataBtn">Coletar Dados</button>
-        <button id="calibrateButton">Calibrar Curva</button>
-        <button id="calibrateButtonDist">Calibrar Distância</button>
+        <button id="calibrateButton">Calibrar Distância</button>
+
+        <div id="dutyCard" class="duty-card">
+            Duty Cycle<br><span id="dutyValue">0</span>
+        </div>
     </div>
 
-    <!-- Container Principal -->
+
+
     <div class="container">
         <!-- Status -->
         <div class="card status-card">
             <h2>Status do Sistema</h2>
 
-            <div class="status-item">
-                <div class="led on"></div><span>Sistema Ligado</span>
-            </div>
-            <div class="status-item">
-                <div class="led on"></div><span>Malha Aberta</span>
-            </div>
-            <div class="status-item">
-                <div id="ledBomba" class="led off"></div><span>Bomba</span>
-            </div>
-            <div class="status-item serial-status">
-                <div id="serialLed" class="led off"></div><span id="serialStatus">Desconectado</span>
+            <div class="status-columns">
+                <div class="status-col">
+                    <div class="status-item">
+                        <div class="led on"></div><span>Sistema Ligado</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="led on"></div><span>Malha Fechada</span>
+                    </div>
+                </div>
+
+                <div class="status-col">
+                    <div class="status-item">
+                        <div id="ledBomba" class="led off"></div><span>Bomba</span>
+                    </div>
+                    <div class="status-item serial-status">
+                        <div id="serialLed" class="led off"></div><span id="serialStatus">Desconectado</span>
+                    </div>
+                </div>
             </div>
         </div>
+
 
         <!-- Tanque -->
         <div class="card tanque-card tanque-container">
@@ -837,35 +940,60 @@
         </div>
 
         <!-- Controles -->
-        <div class="card controles-card">
+        <div class="card controles-card controls">
             <h2>Sistema de Controle</h2>
-            <div class="controls">
-                <button id="btnBomba">Ligar Bomba</button>
-                <div class="controls-row">
-                    <!-- VAZÃO -->
-                    <div class="indicador-com-titulo">
-                        <h2>Variável Manipulada</h2>
-                        <div class="indicator-box">
-                            <h3>Vazão</h3>
-                            <canvas id="vazaoChart" width="120" height="120"></canvas>
-                            <div class="input-box">
-                                <input type="number" id="inputVazao" placeholder="1.0" step="0.1" min="0" max="100">
-                                <button onclick="aplicarVazao()">Aplicar</button>
-                            </div>
-                        </div>
+            <div class="controls-row">
+                <!-- Indicador Vazão -->
+                <div class="indicador-com-titulo">
+                    <h2>Variável Controlada</h2>
+                    <div class="indicator-box">
+                        <h3>Vazão</h3>
+                        <canvas id="vazaoChart" width="120" height="120"></canvas>
                     </div>
-                    <!-- NÍVEL -->
-
-                    <div class="indicador-com-titulo">
-                        <h2>Variável Controlada</h2>
-                        <div class="indicator-box">
-                            <h3>Nível</h3>
-                            <canvas id="nivelChart" width="120" height="120"></canvas>
+                </div>
+                <div class="indicador-com-titulo">
+                    <h2>Variável Manipulada</h2>
+                    <!-- Indicador Nível -->
+                    <div class="indicator-box">
+                        <h3>Nível</h3>
+                        <canvas id="nivelChart" width="120" height="120"></canvas>
+                        <div class="input-box">
+                            <div class="input-group">
+                                <label for="inputNivel">SetPoint:</label>
+                                <input type="number" id="inputNivel" placeholder="0.0" step="0.1" min="0" max="100">
+                            </div>
+                            <button onclick="aplicarNivel()">Aplicar</button>
                         </div>
+
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Parâmetros PID -->
+        <div class="card pid-card">
+            <h2>Parâmetros PID</h2>
+            <div class="pid-inputs">
+                <div class="pid-group">
+                    <label for="inputKc">Kc</label>
+                    <input type="number" id="inputKc" placeholder="10.6" step="0.01">
+                </div>
+                <div class="pid-group">
+                    <label for="inputTi">Ti</label>
+                    <input type="number" id="inputTi" placeholder="20.0" step="0.01">
+                </div>
+                <div class="pid-group">
+                    <label for="inputTd">Td</label>
+                    <input type="number" id="inputTd" placeholder="0.0" step="0.01">
+                </div>
+                <button id="aplicarPIDBtn" onclick="aplicarPID()">Aplicar PID</button>
+            </div>
+        </div>
+
+
+
+
+
 
         <!-- Gráfico de Linha -->
         <div class="card grafico-card">
@@ -885,42 +1013,15 @@
         </div>
     </div>
 
-    <!-- Rodapé -->
-    <footer class="footer">
-        <p>&copy; 2024 Nivelsônico. Todos os direitos reservados. |
-            <span>Desenvolvido por Nicole Maia Argondizzi e Isaac Miranda Camargos</span> |
-            <a href="#">Política de Privacidade</a> |
-            <a href="#">Termos de Uso</a>
-
-        </p>
-    </footer>
-
-    <!-- Modal de Calibração -->
     <div id="calibrationModal" class="modal" style="display:none;">
         <div class="modal-content">
-            <h2>Calibrar Curva Cúbica</h2>
-            <label>a:</label>
-            <input type="number" id="inputA" step="any" placeholder="0.36"><br>
-            <label>b:</label>
-            <input type="number" id="inputB" step="any" placeholder="-2.13"><br>
-            <label>c:</label>
-            <input type="number" id="inputC" step="any" placeholder="11.37"><br>
-            <label>d:</label>
-            <input type="number" id="inputD" step="any" placeholder="12.51"><br><br>
+            <label for="inputCalibragem">Distância do Sensor ao Fundo (cm):</label>
+            <input type="number" id="inputCalibragem" placeholder="35.56" step="0.01">
             <button id="sendCalibration">Enviar</button>
             <button id="closeModal">Cancelar</button>
         </div>
     </div>
 
-    <!-- Modal de Calibração -->
-    <div id="calibrationModalDist" class="modalDist" style="display:none;">
-        <div class="modal-content-dist">
-            <label for="inputCalibragem">Distância do Sensor ao Fundo (cm):</label>
-            <input type="number" id="inputCalibragem" placeholder="35.56" step="0.01">
-            <button id="btnSendCalibration">Enviar</button>
-            <button id="btnCloseModal">Cancelar</button>
-        </div>
-    </div>
 
     <!-- Popup de mensagem customizado -->
     <div id="popupMensagem" class="popup">
@@ -932,6 +1033,15 @@
 
 
 
+    <!-- Rodapé -->
+    <footer class="footer">
+        <p>&copy; 2024 Nivelsônico. Todos os direitos reservados. |
+            <span>Desenvolvido por Nicole Maia Argondizzi e Isaac Miranda Camargos</span> |
+            <a href="#">Política de Privacidade</a> |
+            <a href="#">Termos de Uso</a>
+
+        </p>
+    </footer>
 
     <script>
         const logoBtn = document.getElementById('logoBtn');
@@ -955,6 +1065,8 @@
         const nivelLabel = document.getElementById('nivel-label');
         const vazaoChartElem = document.getElementById('vazaoChart').getContext('2d');
         const nivelChartElem = document.getElementById('nivelChart').getContext('2d');
+        const dutyValueSpan = document.getElementById('dutyValue');
+
 
         let bombaLigada = false;
         let nivelAtual = 0; // valor inicial
@@ -962,7 +1074,6 @@
 
         let nivelMax = 34.5;
         let vazaoMax = 6;
-
 
         // Plugin para exibir texto centralizado nos gráficos
         const centerTextPlugin = {
@@ -1042,15 +1153,6 @@
                 }
             });
 
-            // Bomba
-            if (dataObj['Bomba']) {
-                const estadoBomba = dataObj['Bomba'].toLowerCase();
-                ledBomba.classList.toggle('on', estadoBomba === 'ligada');
-                ledBomba.classList.toggle('off', estadoBomba !== 'ligada');
-                btnBomba.textContent = estadoBomba === 'ligada' ? 'Desligar Bomba' : 'Ligar Bomba';
-                bombaLigada = (estadoBomba === 'ligada');
-            }
-
             // Nível
             if (dataObj['Nivel']) {
                 const nivel = parseFloat(dataObj['Nivel']);
@@ -1058,14 +1160,19 @@
                 fluidoEl.style.height = `${nivel}%`;
                 nivelLabel.textContent = `${nivel.toFixed(0)}%`;
                 atualizarNivelChart(nivel);
-            }
 
+            }
 
             // Vazão
             if (dataObj['Vazao']) {
                 const vazao = parseFloat(dataObj['Vazao']);
                 vazaoAtual = vazao;
                 atualizarVazaoChart(vazao);
+            }
+            // Duty Cycle
+            if (dataObj['Duty']) {
+                const duty = parseFloat(dataObj['Duty']);
+                dutyValueSpan.textContent = duty.toFixed(1) + ' %';
             }
         }
 
@@ -1123,7 +1230,7 @@
          ****************************************/
 
         const ctxLine = document.getElementById('grafico').getContext('2d');
-        const valoresIniciais = Array(11).fill(nivelAtual);
+        const valoresIniciais = Array(21).fill(nivelAtual);
         const lineChart = new Chart(ctxLine, {
             type: 'line',
             data: {
@@ -1147,7 +1254,7 @@
                     x: {
                         grid: {
                             color: (ctx) => {
-                                if (ctx.tick && (ctx.tick.value === '10s' || ctx.tick.value === 'Agora')) {
+                                if (ctx.tick && (ctx.tick.value === '20s' || ctx.tick.value === 'Agora')) {
                                     return 'rgba(0,0,0,0.05)';
                                 }
                                 return 'rgba(0,0,0,0.01)';
@@ -1156,7 +1263,7 @@
                         ticks: { color: '#dee2e6' }
                     },
                     y: {
-                        min: 0, max: 40,
+                        min: 0, max: 35,
                         grid: {
                             color: (ctx) => {
                                 if (ctx.tick && (ctx.tick.value === 0 || ctx.tick.value === 40)) {
@@ -1191,7 +1298,7 @@
 
         function gerarLabels(intervaloSegundos) {
             const labels = [];
-            for (let i = 0; i <= 10; i++) {
+            for (let i = 0; i <= 20; i++) {
                 labels.push(`${i * intervaloSegundos}s`);
             }
             return labels;
@@ -1207,20 +1314,25 @@
 
             // Garante que labels e data estão sincronizados com o novo intervalo
             const intervaloSegundos = parseInt(inputIntervalo.value) || 1;
-            tempoDecorrido = intervaloSegundos * 10; // Começa em tempo máximo
+            tempoDecorrido = intervaloSegundos * 20; // Começa em tempo máximo
 
             lineChart.data.labels = gerarLabels(intervaloSegundos);
-            lineChart.data.datasets[0].data = Array(11).fill(nivelAtual);
+            lineChart.data.datasets[0].data = Array(21).fill(nivelAtual);
             lineChart.update();
 
             intervaloId = setInterval(() => {
                 const novoNivel = parseFloat(nivelAtual.toFixed(1));
                 if (isNaN(novoNivel)) return;
 
+                // Remove o mais antigo e adiciona o novo
+                lineChart.data.datasets[0].data.shift();
                 lineChart.data.datasets[0].data.push(novoNivel);
-                tempoDecorrido += intervaloSegundos;
-                lineChart.data.labels.push(`${tempoDecorrido}s`);
 
+                tempoDecorrido += intervaloSegundos;
+
+                // Atualiza os labels também
+                lineChart.data.labels.shift();
+                lineChart.data.labels.push(`${tempoDecorrido}s`);
 
                 lineChart.update();
             }, intervaloAtual);
@@ -1241,7 +1353,7 @@
 
             // Atualiza os labels E os dados
             lineChart.data.labels = gerarLabels(novoValor); // Gera novas labels corretas para o novo intervalo
-            lineChart.data.datasets[0].data = Array(11).fill(nivelAtual); // Atualiza também o dado para acompanhar
+            lineChart.data.datasets[0].data = Array(21).fill(nivelAtual); // Atualiza também o dado para acompanhar
 
             lineChart.update(); // Atualiza o gráfico visualmente
 
@@ -1251,7 +1363,7 @@
         document.getElementById('resetChartBtn').addEventListener('click', () => {
             tempoDecorrido = 0;
             lineChart.data.labels = gerarLabels(parseInt(inputIntervalo.value));
-            lineChart.data.datasets[0].data = Array(11).fill(nivelAtual);
+            lineChart.data.datasets[0].data = Array(21).fill(nivelAtual);
             lineChart.update();
         });
 
@@ -1299,24 +1411,6 @@
             }
         }
 
-        // Bomba On/Off Manual
-        const btnBomba = document.getElementById('btnBomba');
-        btnBomba.addEventListener('click', () => {
-            bombaLigada = !bombaLigada;
-            btnBomba.textContent = bombaLigada ? 'Desligar Bomba' : 'Ligar Bomba';
-
-            // Envia comando: "Bomba:Ligada" ou "Bomba:Desligada"
-            if (port && port.writable) {
-                const writer = port.writable.getWriter();
-                const comando = `Bomba:${bombaLigada ? 'Ligada' : 'Desligada'}\n`;
-                writer.write(new TextEncoder().encode(comando));
-                writer.releaseLock();
-            }
-        });
-
-
-
-
         /****************************************
          * (A) Variáveis para coleta de dados CSV
          ****************************************/
@@ -1341,7 +1435,7 @@
                 // 2) Inicializa array de CSV com header (cabecalho)
                 //    Exemplo de colunas: Tempo (s), Bomba, Nivel, Vazao
                 csvData = [
-                    ['Tempo (s)', 'Bomba', 'Nivel (cm)', 'Vazao (L/min)']
+                    ['Tempo (s)', 'Bomba', 'Nivel (cm)', 'Vazao (L/min)', 'Duty Cycle']
                 ];
 
                 // 3) Guarda o horário de início para calcular "Tempo decorrido"
@@ -1417,15 +1511,6 @@
                 }
             });
 
-            // Bomba
-            if (dataObj['Bomba']) {
-                const estadoBomba = dataObj['Bomba'].toLowerCase();
-                ledBomba.classList.toggle('on', estadoBomba === 'ligada');
-                ledBomba.classList.toggle('off', estadoBomba !== 'ligada');
-                btnBomba.textContent = estadoBomba === 'ligada' ? 'Desligar Bomba' : 'Ligar Bomba';
-                bombaLigada = (estadoBomba === 'ligada');
-            }
-
             // Nível
             if (dataObj['Nivel']) {
                 const nivel = parseFloat(dataObj['Nivel']);
@@ -1457,7 +1542,8 @@
                     elapsedSeconds,
                     bombaEstado,
                     nivelAtual.toFixed(2),
-                    vazaoAtual.toFixed(2)
+                    vazaoAtual.toFixed(2),
+                    duty.toFixed(1)
                 ]);
             }
         }
@@ -1480,8 +1566,8 @@
                 const nivelEmCm = parseFloat(dataObj['Nivel']);
 
                 // 1) Atualiza a altura do fluido em porcentagem
-                // Se 35.5 cm é o nível máximo:
-                let alturaPercent = (nivelEmCm / 35.5) * 100;
+                // Se 34.5 cm é o nível máximo:
+                let alturaPercent = (nivelEmCm / nivelMax) * 100;
                 if (alturaPercent > 100) alturaPercent = 100;
                 if (alturaPercent < 0) alturaPercent = 0;
                 fluidoEl.style.height = alturaPercent + '%';
@@ -1494,49 +1580,16 @@
 
         }
 
+        // --------------CALIBRAÇÃO-----------------
+        // Botão para abrir o modal de calibração
         const calibrateButton = document.getElementById('calibrateButton');
         const calibrationModal = document.getElementById('calibrationModal');
-        const sendCalibration = document.getElementById('sendCalibration');
-        const closeModal = document.getElementById('closeModal');
-
-        calibrateButton.addEventListener('click', () => {
-            calibrationModal.style.display = 'flex';
-        });
-
-        closeModal.addEventListener('click', () => {
-            calibrationModal.style.display = 'none';
-        });
-
-        sendCalibration.addEventListener('click', async () => {
-            const a = parseFloat(document.getElementById('inputA').value) || 0;
-            const b = parseFloat(document.getElementById('inputB').value) || 0;
-            const c = parseFloat(document.getElementById('inputC').value) || 0;
-            const d = parseFloat(document.getElementById('inputD').value) || 0;
-
-            const comando = `Calibrar:${a.toFixed(8)},${b.toFixed(8)},${c.toFixed(8)},${d.toFixed(8)}\n`;
-
-            if (port && port.writable) {
-                const writer = port.writable.getWriter();
-                await writer.write(new TextEncoder().encode(comando));
-                writer.releaseLock();
-                mostrarPopup('Parâmetros enviados!');
-            } else {
-                mostrarPopup('Conecte ao Arduino primeiro!');
-            }
-
-            calibrationModal.style.display = 'none';
-        });
-
-
-        // --------------CALIBRAÇÃO-----------------
-        const calibrateButtonDist = document.getElementById('calibrateButtonDist');
-        const calibrationModalDist = document.getElementById('calibrationModalDist');
-        const btnEnviarCalibragem = document.getElementById('btnSendCalibration');
-        const btnCloseModal = document.getElementById('btnCloseModal');
+        const btnEnviarCalibragem = document.getElementById('sendCalibration'); // botão de enviar a distância
+        // Atenção: Você não tem botão close no seu modal novo ainda, então tiramos closeModal
 
         // Abre o modal
-        calibrateButtonDist.addEventListener('click', () => {
-            calibrationModalDist.style.display = 'flex';
+        calibrateButton.addEventListener('click', () => {
+            calibrationModal.style.display = 'flex';
         });
 
         // Envia a distância digitada
@@ -1553,35 +1606,83 @@
                 mostrarPopup('Conecte ao Arduino primeiro!');
             }
 
-            calibrationModalDist.style.display = 'none';
+            calibrationModal.style.display = 'none'; // Fecha o modal depois de enviar
         });
 
-        // Fecha ao clicar fora do modal
+        // Clicar fora do modal fecha também
         window.addEventListener('click', (event) => {
-            if (event.target == calibrationModalDist) {
-                calibrationModalDist.style.display = 'none';
+            if (event.target == calibrationModal) {
+                calibrationModal.style.display = 'none';
             }
         });
 
-        // Fecha ao clicar em "Cancelar"
-        btnCloseModal.addEventListener('click', () => {
-            calibrationModalDist.style.display = 'none';
+        const closeModal = document.getElementById('closeModal');
+
+        closeModal.addEventListener('click', () => {
+            calibrationModal.style.display = 'none';
         });
+
+
+
+
+
+
+
+        // Botão Aplicar Nível Desejado
+        const aplicarNivelBtn = document.querySelector('.input-box button'); // botão dentro da div input-box
+
+        aplicarNivelBtn.addEventListener('click', async () => {
+            const nivel = parseFloat(document.getElementById('inputNivel').value) || 0;
+            const comando = `Nivel:${nivel.toFixed(2)}\n`;
+
+            if (port && port.writable) {
+                const writer = port.writable.getWriter();
+                await writer.write(new TextEncoder().encode(comando));
+                writer.releaseLock();
+                mostrarPopup('Nível desejado enviado!');
+            } else {
+                mostrarPopup('Conecte ao Arduino primeiro!');
+            }
+        });
+
+
+        // Botão Aplicar PID (envia Kc, Ti e Td separadamente)
+        const aplicarPID = document.getElementById('aplicarPIDBtn');
+
+        aplicarPID.addEventListener('click', async () => {
+            const kc = parseFloat(document.getElementById('inputKc').value) || 0;
+            const ti = parseFloat(document.getElementById('inputTi').value) || 0;
+            const td = parseFloat(document.getElementById('inputTd').value) || 0;
+
+            if (port && port.writable) {
+                const writer = port.writable.getWriter();
+
+                await writer.write(new TextEncoder().encode(`Kc:${kc.toFixed(2)}\n`));
+                await writer.write(new TextEncoder().encode(`Ti:${ti.toFixed(2)}\n`));
+                await writer.write(new TextEncoder().encode(`Td:${td.toFixed(2)}\n`));
+
+                writer.releaseLock();
+                mostrarPopup('Parâmetros PID enviados!');
+            } else {
+                mostrarPopup('Conecte ao Arduino primeiro!');
+            }
+        });
+
 
 
 
         const btnMalhaAberta = document.getElementById('btnMalhaAberta');
         const btnMalhaFechada = document.getElementById('btnMalhaFechada');
 
-        btnMalhaAberta.addEventListener('click', () => {
-            enviarModoControle("Aberta");
-        });
-        btnMalhaFechada.addEventListener('click', async () => {
-            await enviarModoControle("Fechada");
-            window.location.href = "../Malha_fechada/controle.html";
+        btnMalhaAberta.addEventListener('click', async () => {
+            await enviarModoControle("Aberta");
+            window.location.href = "malha_aberta.html";
 
         });
 
+        btnMalhaFechada.addEventListener('click', () => {
+            enviarModoControle("Fechada");
+        });
 
         async function enviarModoControle(modo) {
             if (port && port.writable) {
