@@ -817,11 +817,11 @@
         <div class="logo" id="logoBtn">Nivelsônico</div>
         <nav>
             <a href="" id="btnMalhaAberta">Malha Aberta</a>
-            <a href="malha_fechada.html" id="btnMalhaFechada">Malha Fechada</a>
+            <a href="./malha_fechada.html" id="btnMalhaFechada">Malha Fechada</a>
         </nav>
     </div>
 
-    <!-- Sidebar (Começa fechada, sem a classe active) -->
+    <!-- Sidebar -->
     <div id="sidebar" class="sidebar">
         <button id="connectButton">Conectar Arduino</button>
         <button id="collectDataBtn">Coletar Dados</button>
@@ -1613,7 +1613,7 @@
         });
         btnMalhaFechada.addEventListener('click', async () => {
             await enviarModoControle("Fechada");
-            window.location.href = "malha_fechada.html";
+            window.location.href = "./malha_fechada.html";
 
         });
 
